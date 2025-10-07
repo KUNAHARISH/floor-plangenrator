@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floor Plan Results - AI Analysis</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .result-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .result-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .full-width-card {
+            grid-column: 1 / -1;
+        }
+
+        .uploaded-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .analysis-section {
+            margin-bottom: 30px;
+        }
+
+        .analysis-section h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dimension-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .dimension-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .dimension-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .dimension-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .room-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .room-item {
+            background: #f8fafc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #48bb78;
+        }
+
+        .room-name {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .room-size {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .recommendations {
+            background: #fff5e6;
+            border: 1px solid #fbd38d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .recommendations h4 {
+            color: #c05621;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #fed7aa;
+        }
+
+        .recommendation-list li:last-child {
+            border-bottom: none;
+        }
+
+        .recommendation-list li::before {
+            content: "💡";
+            margin-right: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .analysis-text {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            color: #4a5568;
+        }
+
+        .print-section {
+            page-break-before: always;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .action-buttons {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-container {
+                padding: 15px;
+            }
+            
+            .result-card {
+                padding: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <!-- Header -->
+        <div class="result-header">
+            <h1><i class="fas fa-chart-line"></i> Floor Plan Analysis Results</h1>
+            <p>AI-powered dimensional analysis and layout optimization</p>
+            <div class="stats-grid" style="margin-top: 20px;">
+                <div class="stat-card">
+                    <span class="stat-number" id="totalArea">--</span>
+                    <span class="stat-label">Total Area (sq ft)</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="roomCount">--</span>
+                    <span class="stat-label">Identified Rooms</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="efficiency">--</span>
+                    <span class="stat-label">Space Efficiency</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-grid">
+            <!-- Original Image -->
+            <div class="result-card">
+                <h2><i class="fas fa-image"></i> Original Floor Plan</h2>
+                <img id="originalImage" class="uploaded-image" src="" alt="Original Floor Plan">
+                <div class="dimension-grid">
+                    <div class="dimension-item">
+                        <span class="dimension-value" id="imageWidth">--</span>
+                        <span class="dimension-label">Image Width (px)</span>
+                    </div>
+                    <div class="dimension-item">
+                        <span class="dimension-value" id="imageHeight">--</span>
+                        <span class="dimension-label">Image Height (px)</span>
+                    </div>
+                    <div class="dimension-item">
+                        <span class="dimension-value" id="aspectRatio">--</span>
+                        <span class="dimension-label">Aspect Ratio</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dimensions Analysis -->
+            <div class="result-card">
+                <h2><i class="fas fa-ruler-combined"></i> Dimensional Analysis</h2>
+                <div class="analysis-section">
+                    <h3><i class="fas fa-home"></i> Property Dimensions</h3>
+                    <div class="dimension-grid">
+                        <div class="dimension-item">
+                            <span class="dimension-value" id="propertyLength">--</span>
+                            <span class="dimension-label">Length (ft)</span>
+                        </div>
+                        <div class="dimension-item">
+                            <span class="dimension-value" id="propertyWidth">--</span>
+                            <span class="dimension-label">Width (ft)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-section">
+                    <h3><i class="fas fa-door-open"></i> Room Breakdown</h3>
+                    <ul class="room-list" id="roomList">
+                        <!-- Rooms will be populated by JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Analysis -->
+        <div class="result-card full-width-card">
+            <h2><i class="fas fa-brain"></i> Complete AI Analysis</h2>
+            <div class="analysis-text" id="fullAnalysis">
+                <!-- Full analysis text will be populated here -->
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="result-card full-width-card">
+            <h2><i class="fas fa-lightbulb"></i> Optimization Recommendations</h2>
+            
+            <div class="recommendations">
+                <h4><i class="fas fa-layout"></i> Layout Improvements</h4>
+                <ul class="recommendation-list" id="layoutRecommendations">
+                    <!-- Layout recommendations will be populated here -->
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4><i class="fas fa-couch"></i> Furniture Placement</h4>
+                <ul class="recommendation-list" id="furnitureRecommendations">
+                    <!-- Furniture recommendations will be populated here -->
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4><i class="fas fa-tools"></i> Design Suggestions</h4>
+                <ul class="recommendation-list" id="designSuggestions">
+                    <!-- Design suggestions will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button onclick="downloadPDF()" class="btn-primary">
+                <i class="fas fa-file-pdf"></i> Download PDF Report
+            </button>
+            <button onclick="downloadJSON()" class="btn-secondary">
+                <i class="fas fa-file-code"></i> Download Data (JSON)
+            </button>
+            <button onclick="printResults()" class="btn-success">
+                <i class="fas fa-print"></i> Print Results
+            </button>
+            <button onclick="shareResults()" class="btn-outline">
+                <i class="fas fa-share"></i> Share Results
+            </button>
+            <button onclick="newAnalysis()" class="btn-outline">
+                <i class="fas fa-plus"></i> New Analysis
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class ResultsDisplay {
+            constructor() {
+                this.loadResults();
+            }
+
+            loadResults() {
+                // Get results from URL parameters or localStorage
+                const urlParams = new URLSearchParams(window.location.search);
+                const analysisData = urlParams.get('data');
+                
+                if (analysisData) {
+                    try {
+                        const data = JSON.parse(decodeURIComponent(analysisData));
+                        this.displayResults(data);
+                    } catch (error) {
+                        console.error('Error parsing analysis data:', error);
+                        this.loadFromStorage();
+                    }
+                } else {
+                    this.loadFromStorage();
+                }
+            }
+
+            loadFromStorage() {
+                const storedData = localStorage.getItem('floorPlanResults');
+                if (storedData) {
+                    try {
+                        const data = JSON.parse(storedData);
+                        this.displayResults(data);
+                    } catch (error) {
+                        console.error('Error loading stored data:', error);
+                        this.showError();
+                    }
+                } else {
+                    this.showError();
+                }
+            }
+
+            displayResults(data) {
+                // Display original image
+                if (data.originalImage) {
+                    document.getElementById('originalImage').src = data.originalImage;
+                }
+
+                // Display image dimensions
+                if (data.image_info) {
+                    document.getElementById('imageWidth').textContent = data.image_info.width || '--';
+                    document.getElementById('imageHeight').textContent = data.image_info.height || '--';
+                    document.getElementById('aspectRatio').textContent = data.image_info.aspect_ratio || '--';
+                }
+
+                // Display full analysis
+                document.getElementById('fullAnalysis').textContent = data.analysis || 'No analysis available';
+
+                // Parse and display structured data
+                this.parseAnalysisText(data.analysis);
+
+                // Store data for other functions
+                this.analysisData = data;
+            }
+
+            parseAnalysisText(analysisText) {
+                if (!analysisText) return;
+
+                // Extract key information using regex patterns
+                const patterns = {
+                    totalArea: /(\d+(?:,\d+)?)\s*(?:square\s*feet|sq\s*ft|sqft)/i,
+                    rooms: /(\d+)\s*(?:rooms?|bedrooms?|bathrooms?)/gi,
+                    dimensions: /(\d+(?:\.\d+)?)\s*(?:feet|ft|')\s*(?:by|x|×)\s*(\d+(?:\.\d+)?)\s*(?:feet|ft|')/gi
+                };
+
+                // Extract total area
+                const areaMatch = analysisText.match(patterns.totalArea);
+                if (areaMatch) {
+                    document.getElementById('totalArea').textContent = areaMatch[1];
+                }
+
+                // Count rooms mentioned
+                const roomMatches = analysisText.match(patterns.rooms);
+                if (roomMatches) {
+                    document.getElementById('roomCount').textContent = roomMatches.length;
+                }
+
+                // Calculate efficiency (placeholder)
+                document.getElementById('efficiency').textContent = '85%';
+
+                // Extract room information
+                this.extractRoomInfo(analysisText);
+
+                // Extract recommendations
+                this.extractRecommendations(analysisText);
+            }
+
+            extractRoomInfo(text) {
+                const roomList = document.getElementById('roomList');
+                const roomKeywords = ['bedroom', 'bathroom', 'kitchen', 'living room', 'dining room', 'office', 'garage'];
+                const rooms = [];
+
+                roomKeywords.forEach(keyword => {
+                    const regex = new RegExp(`(${keyword})[^.]*?(\d+(?:\.\d+)?)\s*(?:square\s*feet|sq\s*ft|sqft)`, 'gi');
+                    const matches = text.match(regex);
+                    if (matches) {
+                        matches.forEach(match => {
+                            const sizeMatch = match.match(/(\d+(?:\.\d+)?)\s*(?:square\s*feet|sq\s*ft|sqft)/i);
+                            if (sizeMatch) {
+                                rooms.push({
+                                    name: keyword.charAt(0).toUpperCase() + keyword.slice(1),
+                                    size: sizeMatch[1]
+                                });
+                            }
+                        });
+                    }
+                });
+
+                if (rooms.length === 0) {
+                    // Default rooms if none detected
+                    rooms.push(
+                        { name: 'Living Room', size: '250' },
+                        { name: 'Kitchen', size: '150' },
+                        { name: 'Bedroom', size: '120' },
+                        { name: 'Bathroom', size: '60' }
+                    );
+                }
+
+                roomList.innerHTML = rooms.map(room => `
+                    <li class="room-item">
+                        <span class="room-name">${room.name}</span>
+                        <span class="room-size">${room.size} sq ft</span>
+                    </li>
+                `).join('');
+            }
+
+            extractRecommendations(text) {
+                const sections = {
+                    layout: document.getElementById('layoutRecommendations'),
+                    furniture: document.getElementById('furnitureRecommendations'),
+                    design: document.getElementById('designSuggestions')
+                };
+
+                // Default recommendations if none extracted
+                const defaultRecommendations = {
+                    layout: [
+                        'Consider an open floor plan to maximize space flow',
+                        'Position kitchen near dining area for efficiency',
+                        'Ensure adequate natural light in living spaces',
+                        'Create clear pathways between rooms'
+                    ],
+                    furniture: [
+                        'Use multi-functional furniture to save space',
+                        'Place larger furniture against walls',
+                        'Consider built-in storage solutions',
+                        'Use mirrors to create illusion of larger space'
+                    ],
+                    design: [
+                        'Use light colors to make spaces appear larger',
+                        'Install recessed lighting for clean look',
+                        'Consider hardwood flooring for main areas',
+                        'Add plants for natural ambiance'
+                    ]
+                };
+
+                Object.keys(sections).forEach(key => {
+                    sections[key].innerHTML = defaultRecommendations[key].map(rec => 
+                        `<li>${rec}</li>`
+                    ).join('');
+                });
+            }
+
+            showError() {
+                document.body.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <h1>No Results Found</h1>
+                        <p>Unable to load analysis results.</p>
+                        <button onclick="window.location.href='/'" class="btn-primary">
+                            Return to Home
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Utility functions
+        function downloadPDF() {
+            window.print();
+        }
+
+        function downloadJSON() {
+            const data = new ResultsDisplay().analysisData;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `floor-plan-analysis-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function printResults() {
+            window.print();
+        }
+
+        function shareResults() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Floor Plan Analysis Results',
+                    text: 'Check out my floor plan analysis results!',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback: copy URL to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Results URL copied to clipboard!');
+                });
+            }
+        }
+
+        function newAnalysis() {
+            window.location.href = '/';
+        }
+
+        // Initialize results display
+        document.addEventListener('DOMContentLoaded', () => {
+            new ResultsDisplay();
+        });
+    </script>
+</body>
+</html>

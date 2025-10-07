@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floor Plan Generator - AI Powered</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-home"></i> Floor Plan Generator</h1>
+            <p>Upload your floor image and get AI-powered dimension analysis and optimal layout suggestions</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-card">
+                    <h2><i class="fas fa-upload"></i> Upload Floor Image</h2>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="imageInput" accept="image/*" required>
+                            <label for="imageInput" class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Choose Image or Drag & Drop</span>
+                                <small>Supported: PNG, JPG, JPEG, GIF, BMP (Max 16MB)</small>
+                            </label>
+                        </div>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button type="button" id="removeImage" class="remove-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <button type="submit" id="analyzeBtn" class="btn-primary" disabled>
+                            <i class="fas fa-magic"></i> Analyze Floor Plan
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Plan Generation Section -->
+            <section class="generate-section" style="display: none;" id="generateSection">
+                <div class="generate-card">
+                    <h2><i class="fas fa-drafting-compass"></i> Generate Custom Plan</h2>
+                    <form id="generateForm">
+                        <div class="form-group">
+                            <label for="requirements">Describe your requirements:</label>
+                            <textarea id="requirements" placeholder="e.g., 3 bedroom house, open kitchen, master bathroom, garage space, etc." rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="btn-secondary">
+                            <i class="fas fa-cogs"></i> Generate Plan
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Loading Section -->
+            <section class="loading-section" id="loadingSection" style="display: none;">
+                <div class="loading-card">
+                    <div class="spinner"></div>
+                    <h3>Processing your floor plan...</h3>
+                    <p>AI is analyzing dimensions and generating optimal layout suggestions</p>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-card">
+                    <h2><i class="fas fa-chart-line"></i> Analysis Results</h2>
+                    <div class="results-content" id="resultsContent"></div>
+                    <div class="results-actions">
+                        <button id="downloadBtn" class="btn-success">
+                            <i class="fas fa-download"></i> Download Report
+                        </button>
+                        <button id="newAnalysisBtn" class="btn-outline">
+                            <i class="fas fa-plus"></i> New Analysis
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section class="history-section">
+                <div class="history-card">
+                    <h2><i class="fas fa-history"></i> Recent Analyses</h2>
+                    <div class="history-content" id="historyContent">
+                        <p class="no-history">No previous analyses found</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Floor Plan Generator. Powered by Gemini AI</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
